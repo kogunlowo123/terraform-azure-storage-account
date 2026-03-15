@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture - terraform-azure-storage-account</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0b0c0b;color:#f5f2eb;font-family:'Courier New',monospace;line-height:1.7}
+a{color:#c8420a;text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1200px;margin:0 auto;padding:2rem}
+.badge{display:inline-block;background:#0078D4;color:#fff;padding:0.3rem 1rem;border-radius:4px;font-size:0.85rem;margin-bottom:1.5rem}
+h1{font-size:2.2rem;color:#c8420a;border-bottom:2px solid #c8420a;padding-bottom:0.5rem;margin-bottom:1.5rem}
+h2{font-size:1.5rem;color:#c8420a;margin:2rem 0 1rem;border-left:4px solid #c8420a;padding-left:0.75rem}
+h3{font-size:1.1rem;color:#f5f2eb;margin:1.2rem 0 0.5rem}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0}
+.card{background:#161816;border:1px solid #2a2d2a;border-radius:8px;padding:1.2rem;transition:border-color 0.2s}.card:hover{border-color:#c8420a}
+.card .num{font-size:2rem;color:#c8420a;font-weight:bold}
+.card .label{color:#a0a0a0;font-size:0.85rem}
+.card .value{color:#f5f2eb;font-size:1rem;margin-top:0.25rem}
+.arch-diagram{background:#161816;border:1px solid #2a2d2a;border-radius:8px;padding:2rem;margin:1rem 0;overflow-x:auto}
+.flow-row{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0.5rem;margin:0.75rem 0}
+.flow-box{background:#1e201e;border:2px solid #c8420a;border-radius:6px;padding:0.6rem 1.2rem;text-align:center;min-width:140px;font-size:0.85rem}
+.flow-box.accent{background:#c8420a;color:#fff;border-color:#c8420a}
+.flow-box.blue{border-color:#0078D4;background:#0a1628}
+.flow-box.green{border-color:#27AE60;background:#0a1e12}
+.flow-box.yellow{border-color:#F39C12;background:#1e1a0a}
+.flow-box.red{border-color:#E74856;background:#1e0a0e}
+.flow-arrow{color:#c8420a;font-size:1.5rem}
+.flow-arrow-down{text-align:center;color:#c8420a;font-size:1.5rem;margin:0.25rem 0}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.85rem}
+th{background:#1a1c1a;color:#c8420a;text-align:left;padding:0.6rem;border:1px solid #2a2d2a}
+td{padding:0.6rem;border:1px solid #2a2d2a;color:#f5f2eb}
+tr:nth-child(even){background:#131513}
+code{background:#1a1c1a;padding:0.15rem 0.4rem;border-radius:3px;font-size:0.85rem;color:#c8420a}
+pre{background:#1a1c1a;padding:1rem;border-radius:6px;overflow-x:auto;margin:0.5rem 0;font-size:0.82rem;color:#f5f2eb;border:1px solid #2a2d2a}
+.checklist{list-style:none;padding:0}.checklist li{padding:0.4rem 0;border-bottom:1px solid #1a1c1a}
+.checklist li::before{content:"[ ] ";color:#c8420a;font-weight:bold}
+.section{margin-bottom:2.5rem}
+footer{border-top:1px solid #2a2d2a;padding-top:1.5rem;margin-top:3rem;color:#666;font-size:0.8rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="container">
+
+<span class="badge">Microsoft Azure</span>
+<h1>terraform-azure-storage-account</h1>
+
+<div class="section">
+<h2>Executive Summary</h2>
+<p>This Terraform module deploys Azure Storage Accounts with full support for all four storage services: blob containers, file shares, queues, and tables. It includes lifecycle management policies for automated data tiering and deletion, blob versioning and change feed, static website hosting, immutability policies for compliance, network rules with IP/VNet/private link access controls, private endpoints, CMK encryption, infrastructure encryption, managed identity, CORS rules, and diagnostic settings. The module provides a complete data storage foundation for cloud-native applications.</p>
+</div>
+
+<div class="section">
+<h2>Overview</h2>
+<div class="card-grid">
+<div class="card"><div class="num">4</div><div class="label">Storage Services</div><div class="value">Blob, File, Queue, Table</div></div>
+<div class="card"><div class="num">6</div><div class="label">Replication Types</div><div class="value">LRS, GRS, RAGRS, ZRS, GZRS, RAGZRS</div></div>
+<div class="card"><div class="num">10</div><div class="label">Resource Types</div><div class="value">Account, Containers, Shares, Queues, Tables, Policies, PE, Diagnostics</div></div>
+<div class="card"><div class="num">30+</div><div class="label">Input Variables</div><div class="value">Comprehensive configuration</div></div>
+<div class="card"><div class="num">18</div><div class="label">Outputs</div><div class="value">Endpoints, keys, IDs, connection strings</div></div>
+<div class="card"><div class="num">TLS 1.2</div><div class="label">Minimum TLS</div><div class="value">HTTPS-only by default</div></div>
+</div>
+</div>
+
+<div class="section">
+<h2>Architecture Diagram</h2>
+<div class="arch-diagram">
+<div class="flow-row">
+<div class="flow-box accent">Azure Storage Account</div>
+</div>
+<div class="flow-arrow-down">&#9660;</div>
+<div class="flow-row">
+<div class="flow-box blue">Blob Containers</div>
+<div class="flow-box yellow">File Shares</div>
+<div class="flow-box blue">Queues</div>
+<div class="flow-box green">Tables</div>
+</div>
+<div class="flow-arrow-down">&#9660;</div>
+<div class="flow-row">
+<div class="flow-box">Versioning</div>
+<div class="flow-box">Change Feed</div>
+<div class="flow-box">CORS Rules</div>
+<div class="flow-box">Retention Policies</div>
+</div>
+<div class="flow-arrow-down">&#9660;</div>
+<div class="flow-row">
+<div class="flow-box">Lifecycle Management</div>
+<div class="flow-box">Static Website</div>
+<div class="flow-box red">Immutability Policy</div>
+</div>
+<div class="flow-arrow-down">&#9660;</div>
+<div class="flow-row">
+<div class="flow-box green">Network Rules</div>
+<div class="flow-box green">Private Endpoints</div>
+<div class="flow-box green">Private DNS Zones</div>
+</div>
+<div class="flow-arrow-down">&#9660;</div>
+<div class="flow-row">
+<div class="flow-box">Diagnostic Settings</div>
+<div class="flow-box">CMK Encryption</div>
+<div class="flow-box">Managed Identity</div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<h2>Component Breakdown</h2>
+<h3>Storage Account</h3>
+<p>Core account with configurable tier (Standard/Premium), replication (LRS through RAGZRS), kind (StorageV2, BlobStorage, BlockBlobStorage, FileStorage), access tier (Hot/Cool), HNS for Data Lake Gen2, NFSv3, large file shares, infrastructure encryption, and CMK support.</p>
+<h3>Blob Containers</h3>
+<p>Container storage with access type control (private/blob/container). Blob properties enable versioning, change feed, last access time tracking, delete retention policies, container delete retention, and CORS rules.</p>
+<h3>File Shares</h3>
+<p>SMB/NFS file shares with configurable quota, access tier (TransactionOptimized/Hot/Cool), protocol selection, metadata, and ACL-based access policies with permissions, start, and expiry dates.</p>
+<h3>Queues and Tables</h3>
+<p>Storage queues with metadata support. Storage tables with ACL-based access policies for fine-grained access control.</p>
+<h3>Lifecycle Management</h3>
+<p>Automated data management with rules for base blobs (tier to cool/archive, delete), snapshots, and versions. Filters by prefix and blob index tags.</p>
+<h3>Security and Network</h3>
+<p>Network rules with default deny, Azure Services bypass, IP rules, VNet subnet IDs, and private link access. Private endpoints with DNS zone groups. Immutability policies for WORM compliance.</p>
+</div>
+
+<div class="section">
+<h2>Data Flow</h2>
+<ol style="padding-left:1.5rem">
+<li>Clients access storage via public endpoints (filtered by network rules) or private endpoints</li>
+<li>Authentication via shared access keys, SAS tokens, or managed identity</li>
+<li>Data is stored in appropriate service: blobs, files, queues, or tables</li>
+<li>Blob versioning and change feed track data mutations</li>
+<li>Lifecycle management policies automatically tier or delete data based on age</li>
+<li>Delete retention policies enable soft-delete recovery</li>
+<li>Immutability policies enforce WORM storage for compliance</li>
+<li>Static website hosting serves web content directly from blob storage</li>
+<li>Diagnostic settings stream access logs and metrics to monitoring targets</li>
+</ol>
+</div>
+
+<div class="section">
+<h2>Security Controls</h2>
+<table>
+<tr><th>Control</th><th>Implementation</th></tr>
+<tr><td>Encryption at Rest</td><td>Microsoft-managed or customer-managed keys + infrastructure encryption</td></tr>
+<tr><td>Encryption in Transit</td><td>HTTPS-only traffic with TLS 1.2 minimum</td></tr>
+<tr><td>Network Isolation</td><td>Network rules (deny by default), IP/VNet rules, private endpoints</td></tr>
+<tr><td>Access Control</td><td>Shared access keys (disableable), managed identity, SAS</td></tr>
+<tr><td>Data Protection</td><td>Soft delete, versioning, immutability policies (WORM)</td></tr>
+<tr><td>Public Access</td><td>Configurable: disable nested items from being public</td></tr>
+<tr><td>Cross-Tenant</td><td>Cross-tenant replication disabled by default</td></tr>
+<tr><td>Audit Logging</td><td>Diagnostic settings for StorageRead/Write/Delete</td></tr>
+</table>
+</div>
+
+<div class="section">
+<h2>Industry Adaptation</h2>
+<div class="card-grid">
+<div class="card"><h3>Data Lake / Analytics</h3><p>Enable HNS for Data Lake Gen2, configure lifecycle policies for data tiering, use versioning for data lineage, enable change feed for CDC pipelines.</p></div>
+<div class="card"><h3>Compliance / Legal</h3><p>Immutability policies for WORM compliance, CMK encryption, disabled public access, private endpoints, long retention policies, full audit logging.</p></div>
+<div class="card"><h3>Web Applications</h3><p>Static website hosting with custom error pages, CORS rules for cross-origin access, CDN integration, blob containers for media storage.</p></div>
+<div class="card"><h3>Backup / Archive</h3><p>Cool/Archive access tiers, lifecycle management for automated archival, GRS/RAGRS replication for geo-redundancy, immutability for backup integrity.</p></div>
+</div>
+</div>
+
+<div class="section">
+<h2>Production Readiness Checklist</h2>
+<ul class="checklist">
+<li>Select appropriate replication type (GRS/RAGRS for production)</li>
+<li>Set minimum TLS version to 1.2 and enable HTTPS-only</li>
+<li>Disable public blob access (allow_nested_items_to_be_public = false)</li>
+<li>Configure network rules with default deny action</li>
+<li>Deploy private endpoints for secure connectivity</li>
+<li>Enable soft delete for blobs and containers</li>
+<li>Configure lifecycle management policies for cost optimization</li>
+<li>Enable blob versioning for data protection</li>
+<li>Consider disabling shared access keys for AAD-only auth</li>
+<li>Enable CMK encryption for compliance requirements</li>
+<li>Configure diagnostic settings for access monitoring</li>
+<li>Apply resource tags for governance and cost tracking</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>Configuration Reference</h2>
+<h3>Required Variables</h3>
+<table>
+<tr><th>Variable</th><th>Type</th><th>Description</th></tr>
+<tr><td><code>name</code></td><td>string</td><td>Storage account name (3-24 chars, lowercase+numbers)</td></tr>
+<tr><td><code>resource_group_name</code></td><td>string</td><td>Target resource group</td></tr>
+<tr><td><code>location</code></td><td>string</td><td>Azure region</td></tr>
+</table>
+<h3>Key Optional Variables</h3>
+<table>
+<tr><th>Variable</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>account_tier</code></td><td>string</td><td>Standard</td><td>Standard or Premium</td></tr>
+<tr><td><code>account_replication_type</code></td><td>string</td><td>LRS</td><td>Replication strategy</td></tr>
+<tr><td><code>account_kind</code></td><td>string</td><td>StorageV2</td><td>Account kind</td></tr>
+<tr><td><code>containers</code></td><td>map(object)</td><td>{}</td><td>Blob containers</td></tr>
+<tr><td><code>file_shares</code></td><td>map(object)</td><td>{}</td><td>File shares</td></tr>
+<tr><td><code>management_policies</code></td><td>list(object)</td><td>[]</td><td>Lifecycle rules</td></tr>
+<tr><td><code>network_rules</code></td><td>object</td><td>null</td><td>Network access rules</td></tr>
+<tr><td><code>private_endpoints</code></td><td>map(object)</td><td>{}</td><td>Private endpoint configs</td></tr>
+</table>
+<h3>Key Outputs</h3>
+<table>
+<tr><th>Output</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>Storage account ID</td></tr>
+<tr><td><code>name</code></td><td>Storage account name</td></tr>
+<tr><td><code>primary_blob_endpoint</code></td><td>Primary blob endpoint URL</td></tr>
+<tr><td><code>primary_connection_string</code></td><td>Primary connection string (sensitive)</td></tr>
+<tr><td><code>container_ids</code></td><td>Map of container names to IDs</td></tr>
+<tr><td><code>file_share_ids</code></td><td>Map of file share names to IDs</td></tr>
+</table>
+</div>
+
+<div class="section">
+<h2>Deployment</h2>
+<pre>
+# Initialize Terraform
+terraform init
+
+# Preview changes
+terraform plan -out=tfplan
+
+# Apply configuration
+terraform apply tfplan
+</pre>
+<h3>Prerequisites</h3>
+<ul style="padding-left:1.5rem;margin-top:0.5rem">
+<li>Terraform >= 1.3.0</li>
+<li>AzureRM provider >= 3.80.0</li>
+<li>Existing Azure Resource Group</li>
+<li>For CMK: Key Vault with user-assigned managed identity</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>Links</h2>
+<ul style="padding-left:1.5rem">
+<li><a href="https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview">Azure Storage Account Overview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/storage/blobs/lifecycle-management-overview">Lifecycle Management</a></li>
+<li><a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account">Terraform azurerm_storage_account</a></li>
+</ul>
+</div>
+
+<footer>
+<p>terraform-azure-storage-account &middot; Architecture Documentation &middot; Generated 2026-03-15</p>
+<p>Terraform Module for Microsoft Azure</p>
+</footer>
+
+</div>
+</body>
+</html>
