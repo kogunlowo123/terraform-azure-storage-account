@@ -1,5 +1,5 @@
 variable "name" {
-  description = "The name of the storage account. Must be globally unique, 3-24 characters, lowercase letters and numbers only."
+  description = "The name of the storage account (globally unique, 3-24 chars, lowercase and numbers only)."
   type        = string
 
   validation {
@@ -19,7 +19,7 @@ variable "location" {
 }
 
 variable "account_tier" {
-  description = "The tier of the storage account. Valid values are Standard and Premium."
+  description = "The tier of the storage account (Standard or Premium)."
   type        = string
   default     = "Standard"
 
@@ -30,7 +30,7 @@ variable "account_tier" {
 }
 
 variable "account_replication_type" {
-  description = "The replication type. Valid values are LRS, GRS, RAGRS, ZRS, GZRS, and RAGZRS."
+  description = "The replication type (LRS, GRS, RAGRS, ZRS, GZRS, or RAGZRS)."
   type        = string
   default     = "LRS"
 
@@ -41,7 +41,7 @@ variable "account_replication_type" {
 }
 
 variable "account_kind" {
-  description = "The kind of storage account. Valid values are BlobStorage, BlockBlobStorage, FileStorage, Storage, StorageV2."
+  description = "The kind of storage account (BlobStorage, BlockBlobStorage, FileStorage, Storage, StorageV2)."
   type        = string
   default     = "StorageV2"
 
@@ -52,7 +52,7 @@ variable "account_kind" {
 }
 
 variable "access_tier" {
-  description = "The access tier for BlobStorage, FileStorage, and StorageV2. Valid values are Hot and Cool."
+  description = "The access tier for the storage account (Hot or Cool)."
   type        = string
   default     = "Hot"
 
@@ -128,7 +128,7 @@ variable "infrastructure_encryption_enabled" {
 }
 
 variable "identity_type" {
-  description = "The type of managed identity."
+  description = "The type of managed identity (SystemAssigned, UserAssigned, or both)."
   type        = string
   default     = null
 
@@ -151,15 +151,12 @@ variable "blob_properties" {
     change_feed_enabled      = optional(bool, false)
     last_access_time_enabled = optional(bool, false)
     default_service_version  = optional(string, null)
-
     delete_retention_policy = optional(object({
       days = optional(number, 7)
     }), null)
-
     container_delete_retention_policy = optional(object({
       days = optional(number, 7)
     }), null)
-
     cors_rule = optional(list(object({
       allowed_headers    = list(string)
       allowed_methods    = list(string)

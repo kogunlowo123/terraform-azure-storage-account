@@ -1,24 +1,20 @@
-###############################################################################
-# Storage Account
-###############################################################################
-
 resource "azurerm_storage_account" "this" {
-  name                             = var.name
-  resource_group_name              = var.resource_group_name
-  location                         = var.location
-  account_tier                     = var.account_tier
-  account_replication_type         = var.account_replication_type
-  account_kind                     = var.account_kind
-  access_tier                      = var.access_tier
-  min_tls_version                  = var.min_tls_version
-  enable_https_traffic_only        = var.enable_https_traffic_only
-  shared_access_key_enabled        = var.shared_access_key_enabled
-  public_network_access_enabled    = var.public_network_access_enabled
-  allow_nested_items_to_be_public  = var.allow_nested_items_to_be_public
-  is_hns_enabled                   = var.is_hns_enabled
-  nfsv3_enabled                    = var.nfsv3_enabled
-  large_file_share_enabled         = var.large_file_share_enabled
-  cross_tenant_replication_enabled = var.cross_tenant_replication_enabled
+  name                              = var.name
+  resource_group_name               = var.resource_group_name
+  location                          = var.location
+  account_tier                      = var.account_tier
+  account_replication_type          = var.account_replication_type
+  account_kind                      = var.account_kind
+  access_tier                       = var.access_tier
+  min_tls_version                   = var.min_tls_version
+  enable_https_traffic_only         = var.enable_https_traffic_only
+  shared_access_key_enabled         = var.shared_access_key_enabled
+  public_network_access_enabled     = var.public_network_access_enabled
+  allow_nested_items_to_be_public   = var.allow_nested_items_to_be_public
+  is_hns_enabled                    = var.is_hns_enabled
+  nfsv3_enabled                     = var.nfsv3_enabled
+  large_file_share_enabled          = var.large_file_share_enabled
+  cross_tenant_replication_enabled  = var.cross_tenant_replication_enabled
   infrastructure_encryption_enabled = var.infrastructure_encryption_enabled
 
   dynamic "identity" {
@@ -107,12 +103,8 @@ resource "azurerm_storage_account" "this" {
     }
   }
 
-  tags = local.merged_tags
+  tags = var.tags
 }
-
-###############################################################################
-# Blob Containers
-###############################################################################
 
 resource "azurerm_storage_container" "this" {
   for_each = var.containers
@@ -122,10 +114,6 @@ resource "azurerm_storage_container" "this" {
   container_access_type = each.value.container_access_type
   metadata              = each.value.metadata
 }
-
-###############################################################################
-# File Shares
-###############################################################################
 
 resource "azurerm_storage_share" "this" {
   for_each = var.file_shares
@@ -154,10 +142,6 @@ resource "azurerm_storage_share" "this" {
   }
 }
 
-###############################################################################
-# Queues
-###############################################################################
-
 resource "azurerm_storage_queue" "this" {
   for_each = var.queues
 
@@ -165,10 +149,6 @@ resource "azurerm_storage_queue" "this" {
   storage_account_name = azurerm_storage_account.this.name
   metadata             = each.value.metadata
 }
-
-###############################################################################
-# Tables
-###############################################################################
 
 resource "azurerm_storage_table" "this" {
   for_each = var.tables
@@ -192,10 +172,6 @@ resource "azurerm_storage_table" "this" {
     }
   }
 }
-
-###############################################################################
-# Lifecycle Management Policy
-###############################################################################
 
 resource "azurerm_storage_management_policy" "this" {
   count = length(var.management_policies) > 0 ? 1 : 0
@@ -254,10 +230,6 @@ resource "azurerm_storage_management_policy" "this" {
   }
 }
 
-###############################################################################
-# Private Endpoints
-###############################################################################
-
 resource "azurerm_private_endpoint" "this" {
   for_each = var.private_endpoints
 
@@ -282,18 +254,15 @@ resource "azurerm_private_endpoint" "this" {
     }
   }
 
-  tags = local.merged_tags
+  tags = var.tags
 }
-
-###############################################################################
-# Diagnostic Settings
-###############################################################################
 
 resource "azurerm_monitor_diagnostic_setting" "this" {
   for_each = var.diagnostic_settings
 
-  name                           = each.key
-  target_resource_id             = lookup(local.diagnostic_target_map, each.value.target_resource_type, local.diagnostic_target_map["blob"])
+  name               = each.key
+  target_resource_id = "${azurerm_storage_account.this.id}/${each.value.target_resource_type == "file" ? "fileServices" : each.value.target_resource_type == "queue" ? "queueServices" : each.value.target_resource_type == "table" ? "tableServices" : "blobServices"}/default"
+
   log_analytics_workspace_id     = each.value.log_analytics_workspace_id
   storage_account_id             = each.value.storage_account_id
   eventhub_name                  = each.value.eventhub_name
