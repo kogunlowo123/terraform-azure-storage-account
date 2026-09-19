@@ -7,7 +7,7 @@ resource "azurerm_storage_account" "this" {
   account_kind                      = var.account_kind
   access_tier                       = var.access_tier
   min_tls_version                   = var.min_tls_version
-  enable_https_traffic_only         = var.enable_https_traffic_only
+  https_traffic_only_enabled        = var.enable_https_traffic_only
   shared_access_key_enabled         = var.shared_access_key_enabled
   public_network_access_enabled     = var.public_network_access_enabled
   allow_nested_items_to_be_public   = var.allow_nested_items_to_be_public
@@ -60,14 +60,6 @@ resource "azurerm_storage_account" "this" {
     }
   }
 
-  dynamic "static_website" {
-    for_each = var.static_website != null ? [var.static_website] : []
-    content {
-      index_document     = static_website.value.index_document
-      error_404_document = static_website.value.error_404_document
-    }
-  }
-
   dynamic "immutability_policy" {
     for_each = var.immutability_policy != null ? [var.immutability_policy] : []
     content {
@@ -106,11 +98,19 @@ resource "azurerm_storage_account" "this" {
   tags = var.tags
 }
 
+resource "azurerm_storage_account_static_website" "this" {
+  count = var.static_website != null ? 1 : 0
+
+  storage_account_id = azurerm_storage_account.this.id
+  index_document     = var.static_website.index_document
+  error_404_document = var.static_website.error_404_document
+}
+
 resource "azurerm_storage_container" "this" {
   for_each = var.containers
 
   name                  = each.key
-  storage_account_name  = azurerm_storage_account.this.name
+  storage_account_id    = azurerm_storage_account.this.id
   container_access_type = each.value.container_access_type
   metadata              = each.value.metadata
 }
@@ -118,12 +118,12 @@ resource "azurerm_storage_container" "this" {
 resource "azurerm_storage_share" "this" {
   for_each = var.file_shares
 
-  name                 = each.key
-  storage_account_name = azurerm_storage_account.this.name
-  quota                = each.value.quota
-  access_tier          = each.value.access_tier
-  enabled_protocol     = each.value.enabled_protocol
-  metadata             = each.value.metadata
+  name               = each.key
+  storage_account_id = azurerm_storage_account.this.id
+  quota              = each.value.quota
+  access_tier        = each.value.access_tier
+  enabled_protocol   = each.value.enabled_protocol
+  metadata           = each.value.metadata
 
   dynamic "acl" {
     for_each = each.value.acl
@@ -145,16 +145,16 @@ resource "azurerm_storage_share" "this" {
 resource "azurerm_storage_queue" "this" {
   for_each = var.queues
 
-  name                 = each.key
-  storage_account_name = azurerm_storage_account.this.name
-  metadata             = each.value.metadata
+  name               = each.key
+  storage_account_id = azurerm_storage_account.this.id
+  metadata           = each.value.metadata
 }
 
 resource "azurerm_storage_table" "this" {
   for_each = var.tables
 
-  name                 = each.key
-  storage_account_name = azurerm_storage_account.this.name
+  name               = each.key
+  storage_account_id = azurerm_storage_account.this.id
 
   dynamic "acl" {
     for_each = each.value.acl
@@ -275,11 +275,10 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
     }
   }
 
-  dynamic "metric" {
+  dynamic "enabled_metric" {
     for_each = each.value.metric_categories
     content {
-      category = metric.value
-      enabled  = true
+      category = enabled_metric.value
     }
   }
 }

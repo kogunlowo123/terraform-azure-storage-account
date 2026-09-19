@@ -26,7 +26,10 @@ resource "azurerm_subnet" "services" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_private_dns_zone" "blob" {
@@ -40,17 +43,15 @@ resource "azurerm_private_dns_zone" "file" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
-  name                  = "blob-dns-link"
-  resource_group_name   = azurerm_resource_group.example.name
-  private_dns_zone_name = azurerm_private_dns_zone.blob.name
-  virtual_network_id    = azurerm_virtual_network.example.id
+  name                = "blob-dns-link"
+  private_dns_zone_id = azurerm_private_dns_zone.blob.id
+  virtual_network_id  = azurerm_virtual_network.example.id
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "file" {
-  name                  = "file-dns-link"
-  resource_group_name   = azurerm_resource_group.example.name
-  private_dns_zone_name = azurerm_private_dns_zone.file.name
-  virtual_network_id    = azurerm_virtual_network.example.id
+  name                = "file-dns-link"
+  private_dns_zone_id = azurerm_private_dns_zone.file.id
+  virtual_network_id  = azurerm_virtual_network.example.id
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
