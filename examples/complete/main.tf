@@ -191,7 +191,7 @@ module "storage_account" {
       actions = {
         base_blob = {
           tier_to_cool_after_days_since_modification_greater_than = 60
-          delete_after_days_since_modification_greater_than        = 365
+          delete_after_days_since_modification_greater_than       = 365
         }
       }
     }
